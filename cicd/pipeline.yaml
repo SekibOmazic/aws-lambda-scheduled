@@ -195,7 +195,7 @@ Resources:
                 Capabilities: CAPABILITY_NAMED_IAM
                 ChangeSetName: pipeline-changeset
                 RoleArn: !GetAtt CloudFormationTrustRole.Arn
-                StackName: "scheduled-lambda"
+                StackName: "scheduled-event-lambda"
                 TemplatePath: BuildArtifact::packaged-template.yml
             - Name: ExecuteChangeSet
               ActionTypeId:
@@ -207,4 +207,4 @@ Resources:
               Configuration:
                 ActionMode: CHANGE_SET_EXECUTE
                 ChangeSetName: pipeline-changeset
-                StackName: "scheduled-lambda"
+                StackName: "scheduled-event-lambda"
