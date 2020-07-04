@@ -196,7 +196,7 @@ Resources:
                 ChangeSetName: pipeline-changeset
                 RoleArn: !GetAtt CloudFormationTrustRole.Arn
                 StackName: "scheduled-event-lambda"
-                TemplatePath: BuildArtifact::packaged-template.yml
+                TemplatePath: BuildArtifact::packaged-stack.yaml
             - Name: ExecuteChangeSet
               ActionTypeId:
                 Category: Deploy
