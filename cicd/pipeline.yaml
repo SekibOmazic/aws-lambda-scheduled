@@ -107,7 +107,7 @@ Resources:
                   - config:*
                   - iam:*
                   - cloudwatch:*
-                  - events:PutRule
+                  - events:*
                 Effect: Allow
                 Resource: "*"
           PolicyName: !Sub "scheduled-lambda-cloudformation-policy"
