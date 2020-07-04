@@ -104,11 +104,10 @@ Resources:
                   - s3:*
                   - lambda:*
                   - cloudformation:*
-                  - sns:*
                   - config:*
                   - iam:*
-                  - apigateway:*
                   - cloudwatch:*
+                  - events:PutRule
                 Effect: Allow
                 Resource: "*"
           PolicyName: !Sub "scheduled-lambda-cloudformation-policy"
