@@ -1,0 +1,23 @@
+version: 0.2
+env:
+  variables:
+    LANG: C.UTF-8
+phases:
+  install:
+    runtime-versions:
+      java: corretto8
+  build:
+    commands:
+      - echo [PHASE] Entered the build phase...
+      - ./gradlew clean build
+      - aws cloudformation package --template-file infrastructure/cf-template.yaml --s3-bucket "$S3_BUCKET" --output-template-file packaged-stack.yaml
+  post_build:
+    commands:
+      - echo Build completed on $(date)
+cache:
+  paths:
+    - /root/.gradle/caches/**/*
+artifacts:
+  type: zip
+  files:
+    - packaged-stack.yaml

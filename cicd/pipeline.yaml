@@ -1,0 +1,210 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Full CI/CD environment for the scheduled lambda"
+Parameters:
+  GitHubBranchName:
+    Description: Name of the git branch to use for building
+    Type: String
+    Default: "master"
+  GitHubOwner:
+    Description: The owner or organization for the GitHub project
+    Type: String
+    Default: "SekibOmazic"
+  GitHubRepo:
+    Description: The GitHub repository name
+    Type: String
+    Default: "aws-lambda-scheduled"
+  GitHubToken:
+    Description: OAuth-Token for GitHub-Access
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /github/token
+  IntegrationS3BucketName:
+    Description: S3 Bucket for building the project
+    Type: String
+    Default: sekib-scheduled-lambda-integration-bucket
+  ServiceName:
+    Type: String
+    Default: scheduled-lambda
+
+Resources:
+  ### build integration S3 bucket
+  IntegrationS3Bucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Delete
+    Properties:
+      BucketName: !Ref IntegrationS3BucketName
+  ### roles and policies for everything that happens in the pipeline
+  CodeBuildRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "scheduled-lambda-code-build-role"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - codebuild.amazonaws.com
+            Action:
+              - sts:AssumeRole
+  CodeBuildRolePolicies:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub "scheduled-lambda-code-build-base-policy"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Resource: "*"
+            Action:
+              - s3:*
+              - logs:*
+              - sts:AssumeRole
+      Roles:
+        - !Ref CodeBuildRole
+  CodePipelineTrustRole:
+    Description: Creating service role in IAM for AWS CodePipeline
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+                - codepipeline.amazonaws.com
+            Sid: 1
+      Path: /
+      Policies:
+        - PolicyDocument:
+            Statement:
+              - Action:
+                  - s3:*
+                  - codebuild:*
+                  - cloudformation:*
+                  - iam:PassRole
+                Effect: Allow
+                Resource: "*"
+          PolicyName: !Sub "scheduled-lambda-code-pipeline-policy"
+      RoleName: !Sub "scheduled-lambda-code-pipeline-role"
+    Type: AWS::IAM::Role
+  CloudFormationTrustRole:
+    Description: Creating service role in IAM for AWS CloudFormation
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+                - cloudformation.amazonaws.com
+      Path: /
+      Policies:
+        - PolicyDocument:
+            Statement:
+              - Action:
+                  - s3:*
+                  - lambda:*
+                  - cloudformation:*
+                  - sns:*
+                  - config:*
+                  - iam:*
+                  - apigateway:*
+                  - cloudwatch:*
+                Effect: Allow
+                Resource: "*"
+          PolicyName: !Sub "scheduled-lambda-cloudformation-policy"
+      RoleName: !Sub "scheduled-lambda-cloudformation-role"
+    Type: AWS::IAM::Role
+  ### the actual build project and pipeline definition - scheduled-lambda
+  ScheduledLambdaBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+        Packaging: zip
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/amazonlinux2-x86_64-standard:1.0
+        Type: LINUX_CONTAINER
+        # This environment variable informs AWS CodeBuild where it can retrieve your code artifact.
+        # You can specify any other environment variables your buildspec.yml is looking for.
+        EnvironmentVariables:
+          - Name: S3_BUCKET
+            Value: !Ref IntegrationS3Bucket
+      Name: !Ref ServiceName
+      ServiceRole: !GetAtt CodeBuildRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: cicd/buildspec.yaml
+  ScheduledLambdaPipeline:
+    DependsOn:
+      - CodePipelineTrustRole
+      - IntegrationS3Bucket
+      - ScheduledLambdaBuildProject
+      - CloudFormationTrustRole
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      ArtifactStore:
+        Type: S3
+        Location: !Ref IntegrationS3Bucket
+      Name: !Sub ${ServiceName}-pipeline # scheduled-lambda-pipeline
+      RoleArn: !GetAtt CodePipelineTrustRole.Arn
+      Stages:
+        - Name: GithubSource
+          Actions:
+            - Name: FetchSource
+              ActionTypeId:
+                Category: Source
+                Provider: GitHub
+                Owner: ThirdParty
+                Version: 1
+              Configuration:
+                Owner: !Ref GitHubOwner
+                Repo: !Ref GitHubRepo
+                Branch: !Ref GitHubBranchName
+                OAuthToken: !Ref GitHubToken
+              OutputArtifacts:
+                - Name: SourceArtifact
+        - Name: Build
+          Actions:
+            - Name: Build
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref ScheduledLambdaBuildProject
+              InputArtifacts:
+                - Name: SourceArtifact
+              OutputArtifacts:
+                - Name: BuildArtifact
+              RunOrder: 1
+        - Name: Deploy
+          Actions:
+            - Name: GenerateChangeSet
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Provider: CloudFormation
+                Version: 1
+              InputArtifacts:
+                - Name: BuildArtifact
+              RunOrder: 1
+              Configuration:
+                ActionMode: CHANGE_SET_REPLACE
+                Capabilities: CAPABILITY_NAMED_IAM
+                ChangeSetName: pipeline-changeset
+                RoleArn: !GetAtt CloudFormationTrustRole.Arn
+                StackName: "scheduled-lambda"
+                TemplatePath: BuildArtifact::packaged-template.yml
+            - Name: ExecuteChangeSet
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Provider: CloudFormation
+                Version: 1
+              RunOrder: 2
+              Configuration:
+                ActionMode: CHANGE_SET_EXECUTE
+                ChangeSetName: pipeline-changeset
+                StackName: "scheduled-lambda"

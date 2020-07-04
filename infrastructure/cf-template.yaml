@@ -1,0 +1,65 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Scheduled Lambda that logs event
+
+Resources:
+
+  ExecutionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      Policies:
+        - PolicyName: root
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'logs:CreateLogGroup'
+                  - 'logs:CreateLogStream'
+                  - 'logs:PutLogEvents'
+                Resource: 'arn:aws:logs:*:*:*'
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  # Lambda
+  ScheduledLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: Lamdba triggered by a scheduled CloudWatch Event
+      Handler: com.omazicsekib.App
+      Role: !GetAtt ExecutionRole.Arn
+      Code: ../build/distributions/aws-lambda-scheduled.zip
+      Runtime: java8
+      Timeout: 5
+      FunctionName: aws-lambda-scheduled
+      MemorySize: 512
+
+  # CloudWatch Event Rule
+  EventRule:
+    Type: "AWS::Events::Rule"
+    Properties:
+      Description: >
+        A schedule for the Lambda function..
+      ScheduleExpression: cron(* */5 * * ? *)
+      State: ENABLED
+      Targets:
+        - Arn: !GetAtt ScheduledLambda.Arn
+          Id: ScheduledLambdaEventRule
+
+  # Resource-based policy. Allow Lambda invocation by CloudWatch event
+  LambdaSchedulePermission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: 'lambda:InvokeFunction'
+      FunctionName: !GetAtt ScheduledLambda.Arn
+      Principal: 'events.amazonaws.com'
+      SourceArn: !GetAtt EventRule.Arn
