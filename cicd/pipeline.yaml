@@ -70,8 +70,8 @@ Resources:
       RoleName: scheduled-lambda-codepipeline-role
       AssumeRolePolicyDocument:
         Statement:
-          - Action: sts:AssumeRole
-            Effect: Allow
+          - Effect: Allow
+            Action: sts:AssumeRole
             Principal:
               Service:
                 - codepipeline.amazonaws.com
@@ -81,13 +81,13 @@ Resources:
         - PolicyName: scheduled-lambda-code-pipeline-policy
           PolicyDocument:
             Statement:
-              - Action:
-                - s3:*
-                - codebuild:*
-                - cloudformation:*
-                - iam:PassRole
-                Effect: Allow
+              - Effect: Allow
                 Resource: "*"
+                Action:
+                  - s3:*
+                  - codebuild:*
+                  - cloudformation:*
+                  - iam:PassRole
 
   CloudFormationTrustRole:
     Type: AWS::IAM::Role
@@ -96,8 +96,8 @@ Resources:
       RoleName: scheduled-lambda-cloudformation-role
       AssumeRolePolicyDocument:
         Statement:
-          - Action: sts:AssumeRole
-            Effect: Allow
+          - Effect: Allow
+            Action: sts:AssumeRole
             Principal:
               Service:
                 - cloudformation.amazonaws.com
@@ -106,7 +106,9 @@ Resources:
         - PolicyName: scheduled-lambda-cloudformation-policy
           PolicyDocument:
             Statement:
-              - Action:
+              - Effect: Allow
+                Resource: "*"
+                Action:
                   - s3:*
                   - lambda:*
                   - cloudformation:*
@@ -116,8 +118,6 @@ Resources:
                   - events:*
                   - codebuild:*
                   - codepipeline:*
-              Effect: Allow
-              Resource: "*"
 
   ### the actual build project and pipeline definition - scheduled-lambda
   ScheduledLambdaBuildProject:
