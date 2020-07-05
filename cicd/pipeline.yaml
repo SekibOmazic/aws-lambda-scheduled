@@ -23,7 +23,7 @@ Parameters:
     Default: sekib-scheduled-lambda-integration-bucket
   ServiceName:
     Type: String
-    Default: scheduled-lambda
+    Default: scheduled-event-lambda
 
 Resources:
   ### build integration S3 bucket
@@ -36,7 +36,7 @@ Resources:
   CodeBuildRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Sub "scheduled-lambda-code-build-role"
+      RoleName: !Sub ${ServiceName}-codebuild-role
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -50,7 +50,7 @@ Resources:
   CodeBuildRolePolicies:
     Type: AWS::IAM::Policy
     Properties:
-      PolicyName: scheduled-lambda-code-build-base-policy
+      PolicyName: !Sub ${ServiceName}-codebuild-base-policy
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -67,7 +67,7 @@ Resources:
     Type: AWS::IAM::Role
     Description: Creating service role in IAM for AWS CodePipeline
     Properties:
-      RoleName: scheduled-lambda-codepipeline-role
+      RoleName: !Sub ${ServiceName}-codepipeline-role
       AssumeRolePolicyDocument:
         Statement:
           - Effect: Allow
@@ -78,7 +78,7 @@ Resources:
             Sid: 1
       Path: /
       Policies:
-        - PolicyName: scheduled-lambda-code-pipeline-policy
+        - PolicyName: !Sub ${ServiceName}-codepipeline-policy
           PolicyDocument:
             Statement:
               - Effect: Allow
@@ -93,7 +93,7 @@ Resources:
     Type: AWS::IAM::Role
     Description: Creating service role in IAM for AWS CloudFormation
     Properties:
-      RoleName: scheduled-lambda-cloudformation-role
+      RoleName: !Sub ${ServiceName}-cloudformation-role
       AssumeRolePolicyDocument:
         Statement:
           - Effect: Allow
@@ -103,7 +103,7 @@ Resources:
                 - cloudformation.amazonaws.com
       Path: /
       Policies:
-        - PolicyName: scheduled-lambda-cloudformation-policy
+        - PolicyName: !Sub ${ServiceName}-cloudformation-policy
           PolicyDocument:
             Statement:
               - Effect: Allow
@@ -119,7 +119,7 @@ Resources:
                   - codebuild:*
                   - codepipeline:*
 
-  ### the actual build project and pipeline definition - scheduled-lambda
+  ### the actual build project and pipeline definition - scheduled-event-lambda
   ScheduledLambdaBuildProject:
     Type: AWS::CodeBuild::Project
     Properties:
@@ -152,7 +152,7 @@ Resources:
       ArtifactStore:
         Type: S3
         Location: !Ref IntegrationS3Bucket
-      Name: !Sub ${ServiceName}-pipeline # scheduled-lambda-pipeline
+      Name: !Sub ${ServiceName}-pipeline # scheduled-event-lambda-pipeline
       RoleArn: !GetAtt CodePipelineTrustRole.Arn
       Stages:
         - Name: GithubSource
@@ -201,7 +201,7 @@ Resources:
                 Capabilities: CAPABILITY_NAMED_IAM
                 ChangeSetName: pipeline-changeset
                 RoleArn: !GetAtt CloudFormationTrustRole.Arn
-                StackName: scheduled-event-lambda
+                StackName: !Ref ServiceName
                 TemplatePath: BuildArtifact::packaged-stack.yaml
             - Name: ExecuteChangeSet
               ActionTypeId:
@@ -213,4 +213,4 @@ Resources:
               Configuration:
                 ActionMode: CHANGE_SET_EXECUTE
                 ChangeSetName: pipeline-changeset
-                StackName: scheduled-event-lambda
+                StackName: !Ref ServiceName
