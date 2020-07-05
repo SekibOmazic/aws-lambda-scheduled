@@ -86,8 +86,8 @@ Resources:
                 - codebuild:*
                 - cloudformation:*
                 - iam:PassRole
-              Effect: Allow
-              Resource: "*"
+                Effect: Allow
+                Resource: "*"
 
   CloudFormationTrustRole:
     Type: AWS::IAM::Role
