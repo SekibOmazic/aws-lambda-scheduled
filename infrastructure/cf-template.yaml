@@ -49,7 +49,7 @@ Resources:
     Properties:
       Description: >
         A schedule for the Lambda function..
-      ScheduleExpression: cron(* */5 * * ? *)
+      ScheduleExpression: cron(* 0/5 * * ? *)
       State: ENABLED
       Targets:
         - Arn: !GetAtt ScheduledLambda.Arn
