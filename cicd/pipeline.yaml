@@ -20,7 +20,7 @@ Parameters:
   IntegrationS3BucketName:
     Description: S3 Bucket for building the project
     Type: String
-    Default: sekib-scheduled-lambda-integration-bucket
+    Default: scheduled-event-lambda-integration-bucket
   ServiceName:
     Type: String
     Default: scheduled-event-lambda
