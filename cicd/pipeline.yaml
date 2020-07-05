@@ -108,6 +108,8 @@ Resources:
                   - iam:*
                   - cloudwatch:*
                   - events:*
+                  - codebuild:*
+                  - codepipeline:*
                 Effect: Allow
                 Resource: "*"
           PolicyName: !Sub "scheduled-lambda-cloudformation-policy"
