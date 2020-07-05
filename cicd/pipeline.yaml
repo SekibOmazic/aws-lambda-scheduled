@@ -46,10 +46,11 @@ Resources:
                 - codebuild.amazonaws.com
             Action:
               - sts:AssumeRole
+
   CodeBuildRolePolicies:
     Type: AWS::IAM::Policy
     Properties:
-      PolicyName: !Sub "scheduled-lambda-code-build-base-policy"
+      PolicyName: scheduled-lambda-code-build-base-policy
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -61,9 +62,12 @@ Resources:
               - sts:AssumeRole
       Roles:
         - !Ref CodeBuildRole
+
   CodePipelineTrustRole:
+    Type: AWS::IAM::Role
     Description: Creating service role in IAM for AWS CodePipeline
     Properties:
+      RoleName: scheduled-lambda-codepipeline-role
       AssumeRolePolicyDocument:
         Statement:
           - Action: sts:AssumeRole
@@ -74,21 +78,22 @@ Resources:
             Sid: 1
       Path: /
       Policies:
-        - PolicyDocument:
+        - PolicyName: scheduled-lambda-code-pipeline-policy
+          PolicyDocument:
             Statement:
               - Action:
-                  - s3:*
-                  - codebuild:*
-                  - cloudformation:*
-                  - iam:PassRole
-                Effect: Allow
-                Resource: "*"
-          PolicyName: !Sub "scheduled-lambda-code-pipeline-policy"
-      RoleName: !Sub "scheduled-lambda-code-pipeline-role"
-    Type: AWS::IAM::Role
+                - s3:*
+                - codebuild:*
+                - cloudformation:*
+                - iam:PassRole
+              Effect: Allow
+              Resource: "*"
+
   CloudFormationTrustRole:
+    Type: AWS::IAM::Role
     Description: Creating service role in IAM for AWS CloudFormation
     Properties:
+      RoleName: scheduled-lambda-cloudformation-role
       AssumeRolePolicyDocument:
         Statement:
           - Action: sts:AssumeRole
@@ -98,7 +103,8 @@ Resources:
                 - cloudformation.amazonaws.com
       Path: /
       Policies:
-        - PolicyDocument:
+        - PolicyName: scheduled-lambda-cloudformation-policy
+          PolicyDocument:
             Statement:
               - Action:
                   - s3:*
@@ -110,11 +116,9 @@ Resources:
                   - events:*
                   - codebuild:*
                   - codepipeline:*
-                Effect: Allow
-                Resource: "*"
-          PolicyName: !Sub "scheduled-lambda-cloudformation-policy"
-      RoleName: !Sub "scheduled-lambda-cloudformation-role"
-    Type: AWS::IAM::Role
+              Effect: Allow
+              Resource: "*"
+
   ### the actual build project and pipeline definition - scheduled-lambda
   ScheduledLambdaBuildProject:
     Type: AWS::CodeBuild::Project
@@ -136,13 +140,14 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: cicd/buildspec.yaml
+
   ScheduledLambdaPipeline:
+    Type: AWS::CodePipeline::Pipeline
     DependsOn:
       - CodePipelineTrustRole
       - IntegrationS3Bucket
       - ScheduledLambdaBuildProject
       - CloudFormationTrustRole
-    Type: AWS::CodePipeline::Pipeline
     Properties:
       ArtifactStore:
         Type: S3
@@ -196,7 +201,7 @@ Resources:
                 Capabilities: CAPABILITY_NAMED_IAM
                 ChangeSetName: pipeline-changeset
                 RoleArn: !GetAtt CloudFormationTrustRole.Arn
-                StackName: "scheduled-event-lambda"
+                StackName: scheduled-event-lambda
                 TemplatePath: BuildArtifact::packaged-stack.yaml
             - Name: ExecuteChangeSet
               ActionTypeId:
@@ -208,4 +213,4 @@ Resources:
               Configuration:
                 ActionMode: CHANGE_SET_EXECUTE
                 ChangeSetName: pipeline-changeset
-                StackName: "scheduled-event-lambda"
+                StackName: scheduled-event-lambda
