@@ -48,8 +48,8 @@ Resources:
     Type: "AWS::Events::Rule"
     Properties:
       Description: >
-        A schedule for the Lambda function..
-      ScheduleExpression: cron(* 0/5 * * ? *)
+        Schedule for the Lambda function.
+      ScheduleExpression: cron(0/5 * * * ? *) # run every 5 min.
       State: ENABLED
       Targets:
         - Arn: !GetAtt ScheduledLambda.Arn
