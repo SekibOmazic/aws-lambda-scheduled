@@ -14,3 +14,5 @@ packaged-stack.yaml
 build/
 target/
 gradlew.bat
+
+iam_role_cfn.json
