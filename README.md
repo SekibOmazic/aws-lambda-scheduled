@@ -34,5 +34,5 @@ aws cloudformation create-stack --stack-name scheduled-event-lambda-pipeline --t
 ```
 
 ## To do
-- use the principle of least privilege and restrict clooudformation policy even more
+- use the principle of least privilege and restrict cloudformation policy even more
 - add a webhook to trigger build on each code change
