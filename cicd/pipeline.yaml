@@ -90,6 +90,7 @@ Resources:
                   - !Sub "arn:aws:s3:::${IntegrationS3Bucket}"
                   - !Sub "arn:aws:s3:::${IntegrationS3Bucket}/*"
 
+              # allow pipeline to use codebuild
               - Effect: Allow
                 Action:
                   - codebuild:StartBuild
@@ -107,8 +108,8 @@ Resources:
                   - cloudformation:CreateChangeSet
                   - cloudformation:ExecuteChangeSet
                 Resource:
-                  - !Sub "arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${AWS::StackName}"
-                  - !Sub "arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${AWS::StackName}/*"
+                  - !Sub "arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${ServiceName}"
+                  - !Sub "arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${ServiceName}/*"
 
               # IAM PassRole
               - Effect: Allow
