@@ -30,7 +30,10 @@ Now check the CloudWatch. There will be a log entry every 5 minutes
 From terminal run:
 
 ```
-aws cloudformation create-stack --stack-name scheduled-event-lambda-pipeline --template-body file://cicd/pipeline.yaml --capabilities CAPABILITY_NAMED_IAM
+aws cloudformation create-stack --stack-name scheduled-event-lambda-pipeline \
+    --template-body file://cicd/pipeline.yaml \
+    --parameters ParameterKey=TableName,ParameterValue=SocialMediaHash \
+    --capabilities CAPABILITY_NAMED_IAM
 ```
 
 ## To do

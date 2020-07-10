@@ -24,6 +24,13 @@ Parameters:
   ServiceName:
     Type: String
     Default: scheduled-event-lambda
+  TableName:
+    Type: String
+    Description: (Required) The name of the new DynamoDB table you want to create and write to. Minimum 3 characters
+    MinLength: 3
+    MaxLength: 50
+    AllowedPattern: ^[A-Za-z_]+$
+    ConstraintDescription: 'Required. Can be characters and underscore only. No numbers or special characters allowed.'
 
 Resources:
   ### build integration S3 bucket
@@ -230,6 +237,10 @@ Resources:
                 RoleArn: !GetAtt CloudFormationTrustRole.Arn
                 StackName: !Ref ServiceName
                 TemplatePath: BuildArtifact::packaged-stack.yaml
+                ParameterOverrides: !Sub |
+                  {
+                    "DynamoDbTableName" : "${TableName}"
+                  }
             - Name: ExecuteChangeSet
               ActionTypeId:
                 Category: Deploy

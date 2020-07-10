@@ -1,6 +1,10 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: Scheduled Lambda that logs event
 
+Parameters:
+  DynamoDbTableName:
+    Type: String
+
 Resources:
 
   ExecutionRole:
@@ -42,6 +46,9 @@ Resources:
       Timeout: 5
       FunctionName: aws-lambda-scheduled
       MemorySize: 512
+      Environment:
+        Variables:
+          DYNAMO_DB_TABLE_NAME: !Ref DynamoDbTableName
 
   # CloudWatch Event Rule
   EventRule:

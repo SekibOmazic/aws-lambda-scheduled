@@ -14,6 +14,7 @@ class EventLogger {
 
     fun logEvent(event: Any, context: Context?) {
         // log execution details
+        logger.info("DYNAMO_DB_TABLE: " + gson.toJson(System.getenv("DYNAMO_DB_TABLE_NAME")));
         logger.info("ENVIRONMENT VARIABLES: " + gson.toJson(System.getenv()));
         logger.info("CONTEXT: " + gson.toJson(context));
 
