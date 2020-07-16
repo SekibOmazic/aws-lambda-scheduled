@@ -250,7 +250,7 @@ Resources:
                     "ApiKey" : "${TwitterApiKey}",
                     "ApiSecret" : "${TwitterApiSecret}",
                     "AccessToken" : "${TwitterAccessToken}",
-                    "AccessTokenSecret" : "${TwitterAccessTokenSecret}",
+                    "AccessTokenSecret" : "${TwitterAccessTokenSecret}"
                   }
             - Name: ExecuteChangeSet
               ActionTypeId:
