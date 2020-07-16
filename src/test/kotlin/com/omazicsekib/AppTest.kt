@@ -3,14 +3,14 @@ package com.omazicsekib
 import io.mockk.every
 import io.mockk.mockk
 import kotlin.test.Test
-import kotlin.test.assertEquals
 import com.amazonaws.services.lambda.runtime.events.ScheduledEvent
+import io.mockk.verify
 import org.joda.time.DateTime
 
 
 class AppTest {
 
-    private val eventLogger = mockk<EventLogger>(relaxed = true)
+    private val twitterService = mockk<TwitterService>(relaxed = true)
 
     @Test
     fun testAppHasAGreeting() {
@@ -26,14 +26,15 @@ class AppTest {
                 .withDetail(emptyMap<String, Any>())
 
 
-        every { eventLogger.logEvent(any(), any()) } returns Unit
+        every { twitterService.searchTwitter(any()) } returns listOf()
 
-        val classUnderTest = App(eventLogger)
+        val classUnderTest = App(twitterService)
 
         // when
         val output = classUnderTest.handleRequest(event, null)
 
         //then
-        assertEquals("200 OK", output)
+        verify(exactly = 1) { twitterService.searchTwitter(any()) }
     }
+
 }

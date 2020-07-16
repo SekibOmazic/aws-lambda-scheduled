@@ -31,7 +31,14 @@ Parameters:
     MaxLength: 50
     AllowedPattern: ^[A-Za-z_]+$
     ConstraintDescription: 'Required. Can be characters and underscore only. No numbers or special characters allowed.'
-
+  TwitterApiKey:
+    Type: String
+  TwitterApiSecret:
+    Type: String
+  TwitterAccessToken:
+    Type: String
+  TwitterAccessTokenSecret:
+    Type: String
 Resources:
   ### build integration S3 bucket
   IntegrationS3Bucket:
@@ -239,7 +246,11 @@ Resources:
                 TemplatePath: BuildArtifact::packaged-stack.yaml
                 ParameterOverrides: !Sub |
                   {
-                    "DynamoDbTableName" : "${TableName}"
+                    "DynamoDbTableName" : "${TableName}",
+                    "ApiKey" : "${TwitterApiKey}",
+                    "ApiSecret" : "${TwitterApiSecret}",
+                    "AccessToken" : "${TwitterAccessToken}",
+                    "AccessTokenSecret" : "${TwitterAccessTokenSecret}",
                   }
             - Name: ExecuteChangeSet
               ActionTypeId:

@@ -32,10 +32,14 @@ From terminal run:
 ```
 aws cloudformation create-stack --stack-name scheduled-event-lambda-pipeline \
     --template-body file://cicd/pipeline.yaml \
-    --parameters ParameterKey=TableName,ParameterValue=SocialMediaHash \
+    --parameters ParameterKey=TableName,ParameterValue=TwitterHashtags \
+                 ParameterKey=TwitterApiKey,ParameterValue=<TWITTER_API_KEY> \
+                 ParameterKey=TwitterApiSecret,ParameterValue=<TWITTER_API_SECRET> \
+                 ParameterKey=TwitterAccessToken,ParameterValue=<TWITTER_ACCESS_TOKEN> \
+                 ParameterKey=TwitterAccessTokenSecret,ParameterValue=<TWITTER_ACCESS_TOKEN_SECRET> \
     --capabilities CAPABILITY_NAMED_IAM
 ```
 
 ## To do
-- use the principle of least privilege and restrict cloudformation policy even more
+- use the principle of the least privilege and restrict cloudformation policy even more
 - add a webhook to trigger build on each code change

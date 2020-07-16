@@ -4,6 +4,14 @@ Description: Scheduled Lambda that logs event
 Parameters:
   DynamoDbTableName:
     Type: String
+  ApiKey:
+    Type: String
+  ApiSecret:
+    Type: String
+  AccessToken:
+    Type: String
+  AccessTokenSecret:
+    Type: String
 
 Resources:
 
@@ -49,6 +57,11 @@ Resources:
       Environment:
         Variables:
           DYNAMO_DB_TABLE_NAME: !Ref DynamoDbTableName
+          API_KEY: !Ref ApiKey
+          API_SECRET: !Ref ApiSecret
+          ACCESS_TOKEN: !Ref AccessToken
+          ACCESS_TOKEN_SECRET: !Ref AccessTokenSecret
+          # API_KEY: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/twitter/api-key"
 
   # CloudWatch Event Rule
   EventRule:
