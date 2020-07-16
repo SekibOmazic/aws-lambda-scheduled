@@ -23,6 +23,13 @@ class TwitterService(
 
     private val twitter: Twitter = TwitterFactory(configuration).getInstance()
 
+    init {
+        logger.info(configuration.oAuthConsumerKey)
+        logger.info(configuration.oAuthConsumerSecret)
+        logger.info(configuration.oAuthAccessToken)
+        logger.info(configuration.oAuthAccessTokenSecret)
+    }
+
     fun searchTwitter(keyword: String): List<Status> {
         val query = Query(keyword + " -filter:retweets -filter:links -filter:replies -filter:images")
         query.setCount(100)
