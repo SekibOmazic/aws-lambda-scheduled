@@ -1,19 +1,61 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: Scheduled Lambda that logs event
+Description: Scheduled Lambda that collects tweets and store them into DynamoDB
 
 Parameters:
   DynamoDbTableName:
     Type: String
+    Description: The name of the new DynamoDB table you want to create and write to.
+  TwitterSearchTerm:
+    Type: String
+  # store following variables in SSM parameter store
   ApiKey:
     Type: String
+    Description: Twitter API Key
   ApiSecret:
     Type: String
+    Description: Twitter API Secret
   AccessToken:
     Type: String
+    Description: Twitter access token
   AccessTokenSecret:
     Type: String
+    Description: Twitter access token secret
+
+#  ApiKey:
+#    Type: AWS::SSM::Parameter::Value<String>
+#    Default: /twitter/api-key
+#    Description: Twitter API Key
+#  ApiSecret:
+#    Type: AWS::SSM::Parameter::Value<String>
+#    Default: /twitter/api-secret
+#    Description: Twitter API Secret
+#  AccessToken:
+#    Type: AWS::SSM::Parameter::Value<String>
+#    Default: /twitter/access-token
+#    Description: Twitter access token
+#  AccessTokenSecret:
+#    Type: AWS::SSM::Parameter::Value<String>
+#    Default: /twitter/access-token-secret
+#    Description: Twitter access token secret
 
 Resources:
+
+  # DynamoDB Table for the tweets
+  DynamoDbTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Ref DynamoDbTableName
+      AttributeDefinitions:
+        - AttributeName: searchTerm
+          AttributeType: S
+        - AttributeName: tweetId
+          AttributeType: N
+      KeySchema:
+        - AttributeName: searchTerm
+          KeyType: HASH
+        - AttributeName: tweetId
+          KeyType: RANGE
+      BillingMode: PAY_PER_REQUEST
 
   ExecutionRole:
     Type: 'AWS::IAM::Role'
@@ -39,6 +81,14 @@ Resources:
                   - logs:CreateLogStream
                   - logs:PutLogEvents
                 Resource: 'arn:aws:logs:*:*:*'
+              - Effect: Allow
+                Action:
+                  - dynamoDB:BatchWriteItem
+                  - dynamodb:GetItem
+                  - dynamodb:PutItem
+                  - dynamodb:Query
+                  - dynamodb:UpdateItem
+                Resource: !GetAtt DynamoDbTable.Arn
       ManagedPolicyArns:
       - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
 
@@ -51,17 +101,23 @@ Resources:
       Role: !GetAtt ExecutionRole.Arn
       Code: ../build/distributions/aws-lambda-scheduled.zip
       Runtime: java8
-      Timeout: 5
+      Timeout: 30
       FunctionName: aws-lambda-scheduled
       MemorySize: 512
       Environment:
         Variables:
-          DYNAMO_DB_TABLE_NAME: !Ref DynamoDbTableName
+          DYNAMODB_TABLE_NAME: !Ref DynamoDbTableName
+          SEARCH_TERM: !Ref TwitterSearchTerm
           API_KEY: !Ref ApiKey
           API_SECRET: !Ref ApiSecret
           ACCESS_TOKEN: !Ref AccessToken
           ACCESS_TOKEN_SECRET: !Ref AccessTokenSecret
+          # If you prefer to keep the keys in SSM Parameter Store instead of
+          # being passed from the cli (via pipeline.yaml) you can use following:
           # API_KEY: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/twitter/api-key"
+          # API_SECRET: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/twitter/api-secret"
+          # ACCESS_TOKEN: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/twitter/access-token"
+          # ACCESS_TOKEN_SECRET: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/twitter/access-token-secret"
 
   # CloudWatch Event Rule
   EventRule:

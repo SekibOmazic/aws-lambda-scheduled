@@ -1,18 +1,55 @@
 #!/usr/bin/env bash
 
-if [[ $# -le 3 ]] ; then
-    echo 'Please call' $0 'with 4 parameters'
-    echo 'Parameters are:'
-    echo 'TWITTER_API_KEY TWITTER_API_SECRET TWITTER_ACCESS_TOKEN TWITTER_ACCESS_TOKEN_SECRET'
-    echo 'Example:' $0 'eUB8PN3434534 MroQR4Jtgo3456fa45654 24334534-HT345345 g9sIRIbCFO03Fir3'
-    exit 1
+usage() {
+    echo "usage: create-stack.sh [--api-key twitter_api_key] [--api-secret twitter_api_secret] [--access-token twitter_access_token] [--access-token-secret twitter_access_token_secret] [--table dynamodb_table] [--search-term search_term] | [-h]"
+}
+
+count=0
+
+while [[ "$1" != "" ]]; do
+    case $1 in
+        -k | --api-key )               shift
+                                       api_key=$1
+                                       ((count++))
+                                       ;;
+        -s | --api-secret )            shift
+                                       api_secret=$1
+                                       ((count++))
+                                       ;;
+        -t | --access-token )          shift
+                                       access_token=$1
+                                       ((count++))
+                                       ;;
+        -ts | --access-token-secret )  shift
+                                       access_token_secret=$1
+                                       ((count++))
+                                       ;;
+        -tn | --table )                shift
+                                       table_name=$1
+                                       ((count++))
+                                       ;;
+        -st | --search-term )          shift
+                                       search_term=$1
+                                       ((count++))
+                                       ;;
+        -h | --help )                  usage
+                                       exit
+                                       ;;
+    esac
+    shift
+done
+
+if [[ $count -ne 6 ]]; then
+  usage
+  exit 1
 fi
 
-aws cloudformation create-stack --stack-name scheduled-event-lambda-pipeline \
+aws cloudformation create-stack --stack-name scheduled-event-lambda \
     --template-body file://cicd/pipeline.yaml \
-    --parameters ParameterKey=TableName,ParameterValue=TwitterHashtags \
-                 ParameterKey=TwitterApiKey,ParameterValue=$1 \
-                 ParameterKey=TwitterApiSecret,ParameterValue=$2 \
-                 ParameterKey=TwitterAccessToken,ParameterValue=$3 \
-                 ParameterKey=TwitterAccessTokenSecret,ParameterValue=$4 \
+    --parameters ParameterKey=TableName,ParameterValue=$table_name \
+                 ParameterKey=SearchTerm,ParameterValue=$search_term \
+                 ParameterKey=TwitterApiKey,ParameterValue=$api_key \
+                 ParameterKey=TwitterApiSecret,ParameterValue=$api_secret \
+                 ParameterKey=TwitterAccessToken,ParameterValue=$access_token \
+                 ParameterKey=TwitterAccessTokenSecret,ParameterValue=$access_token_secret \
     --capabilities CAPABILITY_NAMED_IAM

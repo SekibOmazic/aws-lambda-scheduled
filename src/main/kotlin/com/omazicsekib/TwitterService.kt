@@ -1,9 +1,11 @@
 package com.omazicsekib
 
+import com.omazicsekib.dynamodb.Tweet
 import org.slf4j.LoggerFactory
 import twitter4j.*
 import twitter4j.conf.Configuration
 import twitter4j.conf.ConfigurationBuilder
+import kotlin.math.min
 
 
 class TwitterService(
@@ -23,6 +25,7 @@ class TwitterService(
 
     private val twitter: Twitter = TwitterFactory(configuration).getInstance()
 
+    // TODO: remove this
     init {
         logger.info(configuration.oAuthConsumerKey)
         logger.info(configuration.oAuthConsumerSecret)
@@ -30,16 +33,31 @@ class TwitterService(
         logger.info(configuration.oAuthAccessTokenSecret)
     }
 
-    fun searchTwitter(keyword: String): List<Status> {
-        val query = Query(keyword + " -filter:retweets -filter:links -filter:replies -filter:images")
-        query.setCount(100)
+    fun searchTwitter(searchTerm: String, sinceId: Long = 0): List<Tweet> {
+        val query = Query(searchTerm)
+        query.sinceId(sinceId)
 
-        try {
-            return twitter.search(query).tweets
-        } catch (e: TwitterException) {
-            logger.error(e.toString())
-        }
+        val tweets = mutableListOf<Tweet>()
+        var maxId = Long.MAX_VALUE
+        val maxBatchSize = 512
 
-        return listOf()
+        do {
+            val batchSize  = min(100, maxBatchSize - tweets.size)
+            query.count(batchSize)
+                    .maxId(maxId - 1)
+
+            val batchOfTweets = twitter.search(query).tweets
+                    .map { Tweet(searchTerm, it.id, it.text, it.lang, it.createdAt.toString()) }
+
+            tweets.addAll(batchOfTweets)
+
+            batchOfTweets.forEach {
+                if (it.tweetId < maxId) {
+                    maxId = it.tweetId
+                }
+            }
+        } while (batchOfTweets.size > 0 && tweets.size < maxBatchSize )
+
+        return tweets
     }
 }

@@ -2,18 +2,22 @@ package com.omazicsekib
 
 import io.mockk.every
 import io.mockk.mockk
-import kotlin.test.Test
 import com.amazonaws.services.lambda.runtime.events.ScheduledEvent
+import com.omazicsekib.dynamodb.Tweet
+import com.omazicsekib.dynamodb.TweetRepository
 import io.mockk.verify
 import org.joda.time.DateTime
+import org.junit.jupiter.api.Test
 
 
 class AppTest {
 
     private val twitterService = mockk<TwitterService>(relaxed = true)
+    private val tweetRepository = mockk<TweetRepository>(relaxed = true)
+    private val searchTerm = "#aws -filter:retweets -filter:replies"
 
     @Test
-    fun testAppHasAGreeting() {
+    fun `application can access twitter`() {
 
         // given
         val event: ScheduledEvent = ScheduledEvent()
@@ -26,12 +30,15 @@ class AppTest {
                 .withDetail(emptyMap<String, Any>())
 
 
-        every { twitterService.searchTwitter(any()) } returns listOf()
+        val ml = mutableListOf<Tweet>()
+        every { twitterService.searchTwitter(any(), any()) } returns listOf()
+        every { tweetRepository.lastTweet(any()) } returns null
+        every { tweetRepository.save(capture(ml)) } returns Unit
 
-        val classUnderTest = App(twitterService)
+        val classUnderTest = App(twitterService, tweetRepository, searchTerm)
 
         // when
-        val output = classUnderTest.handleRequest(event, null)
+        classUnderTest.handleRequest(event, null)
 
         //then
         verify(exactly = 1) { twitterService.searchTwitter(any()) }

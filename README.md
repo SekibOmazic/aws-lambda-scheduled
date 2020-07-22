@@ -27,12 +27,15 @@ Now check the CloudWatch. There will be a log entry every 5 minutes
 
 ## Fully automated deployment
 
-From terminal run:
+Create an OAuth Token in your GitHub account and store it in the Parameter Store under `/github/token`
+
+Then from terminal run:
 
 ```
 aws cloudformation create-stack --stack-name scheduled-event-lambda-pipeline \
     --template-body file://cicd/pipeline.yaml \
-    --parameters ParameterKey=TableName,ParameterValue=TwitterHashtags \
+    --parameters ParameterKey=TableName,ParameterValue=<DYNAMODB_TABLE> \
+                 ParameterKey=SearchTerm,ParameterValue=<TWITTER_SEARCH_TERM> \
                  ParameterKey=TwitterApiKey,ParameterValue=<TWITTER_API_KEY> \
                  ParameterKey=TwitterApiSecret,ParameterValue=<TWITTER_API_SECRET> \
                  ParameterKey=TwitterAccessToken,ParameterValue=<TWITTER_ACCESS_TOKEN> \

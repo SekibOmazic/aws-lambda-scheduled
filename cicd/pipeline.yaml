@@ -17,13 +17,9 @@ Parameters:
     Description: OAuth-Token for GitHub-Access
     Type: AWS::SSM::Parameter::Value<String>
     Default: /github/token
-  IntegrationS3BucketName:
-    Description: S3 Bucket for building the project
-    Type: String
-    Default: scheduled-event-lambda-integration-bucket
   ServiceName:
     Type: String
-    Default: scheduled-event-lambda
+    Default: !Sub "${AWS::StackName}"
   TableName:
     Type: String
     Description: (Required) The name of the new DynamoDB table you want to create and write to. Minimum 3 characters
@@ -31,21 +27,27 @@ Parameters:
     MaxLength: 50
     AllowedPattern: ^[A-Za-z_]+$
     ConstraintDescription: 'Required. Can be characters and underscore only. No numbers or special characters allowed.'
+  SearchTerm:
+    Type: String
+    Description: 'Twitter API search term. Example: #aws -filter:retweets -filter:replies'
+    Default: '#aws -filter:retweets -filter:replies'
   TwitterApiKey:
     Type: String
+    Description: Twitter API Key
   TwitterApiSecret:
     Type: String
+    Description: Twitter API Secret
   TwitterAccessToken:
     Type: String
+    Description: Twitter access token
   TwitterAccessTokenSecret:
     Type: String
+    Description: Twitter access token secret
 Resources:
   ### build integration S3 bucket
   IntegrationS3Bucket:
     Type: AWS::S3::Bucket
     DeletionPolicy: Delete
-    Properties:
-      BucketName: !Ref IntegrationS3BucketName
   ### roles and policies for everything that happens in the pipeline
   CodeBuildRole:
     Type: AWS::IAM::Role
@@ -242,11 +244,12 @@ Resources:
                 Capabilities: CAPABILITY_NAMED_IAM
                 ChangeSetName: pipeline-changeset
                 RoleArn: !GetAtt CloudFormationTrustRole.Arn
-                StackName: !Ref ServiceName
+                StackName: !Sub ${ServiceName}-resources # !Ref ServiceName
                 TemplatePath: BuildArtifact::packaged-stack.yaml
                 ParameterOverrides: !Sub |
                   {
                     "DynamoDbTableName" : "${TableName}",
+                    "TwitterSearchTerm" : "${SearchTerm}",
                     "ApiKey" : "${TwitterApiKey}",
                     "ApiSecret" : "${TwitterApiSecret}",
                     "AccessToken" : "${TwitterAccessToken}",
@@ -262,4 +265,4 @@ Resources:
               Configuration:
                 ActionMode: CHANGE_SET_EXECUTE
                 ChangeSetName: pipeline-changeset
-                StackName: !Ref ServiceName
+                StackName: !Sub ${ServiceName}-resources # !Ref ServiceName

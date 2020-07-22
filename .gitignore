@@ -16,3 +16,4 @@ target/
 gradlew.bat
 
 iam_role_cfn.json
+create-stack.txt
