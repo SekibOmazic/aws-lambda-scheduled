@@ -6,6 +6,8 @@ import com.amazonaws.services.lambda.runtime.events.ScheduledEvent
 import com.omazicsekib.dynamodb.DynamoDbTweetRepository
 import com.omazicsekib.dynamodb.TweetRepository
 import org.slf4j.LoggerFactory
+import software.amazon.awssdk.http.SdkHttpClient
+import software.amazon.awssdk.http.apache.ApacheHttpClient
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient
 
@@ -19,7 +21,10 @@ class App(
     ),
     private val dynamoDbRepository: TweetRepository = DynamoDbTweetRepository(
             tableName = System.getenv("DYNAMODB_TABLE_NAME"),
-            dynamoDbClient = DynamoDbClient.builder().region(Region.EU_CENTRAL_1).build()
+            dynamoDbClient = DynamoDbClient.builder()
+                    .region(Region.EU_CENTRAL_1)
+                    .httpClientBuilder(ApacheHttpClient.builder().maxConnections(10))
+                    .build()
     ),
     private val searchTerm: String = System.getenv("SEARCH_TERM")
 ) : RequestHandler<ScheduledEvent, Unit> {

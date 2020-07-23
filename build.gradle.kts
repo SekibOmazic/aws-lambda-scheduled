@@ -66,6 +66,7 @@ dependencies {
 
     implementation(platform("software.amazon.awssdk:bom:2.13.55"))
     implementation("software.amazon.awssdk:dynamodb")
+    implementation("software.amazon.awssdk:apache-client")
     implementation("com.amazonaws:aws-lambda-java-core:1.2.1")
     implementation("com.amazonaws:aws-lambda-java-events:2.2.9")
 
