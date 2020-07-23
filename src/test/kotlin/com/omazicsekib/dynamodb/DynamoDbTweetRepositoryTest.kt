@@ -7,7 +7,7 @@ import software.amazon.awssdk.services.dynamodb.model.ConditionalCheckFailedExce
 import software.amazon.awssdk.services.dynamodb.model.GetItemRequest
 
 class DynamoDbTweetRepositoryTest {
-    private val searchTerm = "#awsrules -filter:retweets -filter:replies"
+    private val searchTerm = "#aws -filter:retweets -filter:replies"
 
     @Test
     fun `add Tweet to DynamoDB`() {

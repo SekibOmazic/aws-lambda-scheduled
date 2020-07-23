@@ -71,8 +71,6 @@ dependencies {
     implementation("com.amazonaws:aws-lambda-java-events:2.2.9")
 
     implementation("org.twitter4j:twitter4j-core:4.0.7")
-    implementation("com.google.code.gson:gson:2.8.6")
-    implementation("org.slf4j:slf4j-simple:1.7.30")
 
     // test libraries
     testImplementation("org.jetbrains.kotlin:kotlin-test")

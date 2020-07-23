@@ -17,9 +17,6 @@ Parameters:
     Description: OAuth-Token for GitHub-Access
     Type: AWS::SSM::Parameter::Value<String>
     Default: /github/token
-#  ServiceName:
-#    Type: String
-#    Default: !Sub "${AWS::StackName}"
   TableName:
     Type: String
     Description: (Required) The name of the new DynamoDB table you want to create and write to. Minimum 3 characters

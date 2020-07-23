@@ -1,7 +1,6 @@
 package com.omazicsekib
 
 import com.omazicsekib.dynamodb.Tweet
-import org.slf4j.LoggerFactory
 import twitter4j.*
 import twitter4j.conf.Configuration
 import twitter4j.conf.ConfigurationBuilder
@@ -14,8 +13,6 @@ class TwitterService(
     accessToken: String,
     accessTokenSecret: String
 ) {
-    private val logger = LoggerFactory.getLogger(this.javaClass)
-
     private val configuration: Configuration = ConfigurationBuilder()
             .setDebugEnabled(true)
             .setOAuthConsumerKey(apiKey)
@@ -24,14 +21,6 @@ class TwitterService(
             .setOAuthAccessTokenSecret(accessTokenSecret).build()
 
     private val twitter: Twitter = TwitterFactory(configuration).getInstance()
-
-    // TODO: remove this
-    init {
-        logger.info(configuration.oAuthConsumerKey)
-        logger.info(configuration.oAuthConsumerSecret)
-        logger.info(configuration.oAuthAccessToken)
-        logger.info(configuration.oAuthAccessTokenSecret)
-    }
 
     fun searchTwitter(searchTerm: String, sinceId: Long = 0): List<Tweet> {
         val query = Query(searchTerm)

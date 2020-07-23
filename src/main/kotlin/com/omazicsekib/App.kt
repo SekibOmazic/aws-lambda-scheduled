@@ -5,8 +5,6 @@ import com.amazonaws.services.lambda.runtime.RequestHandler
 import com.amazonaws.services.lambda.runtime.events.ScheduledEvent
 import com.omazicsekib.dynamodb.DynamoDbTweetRepository
 import com.omazicsekib.dynamodb.TweetRepository
-import org.slf4j.LoggerFactory
-import software.amazon.awssdk.http.SdkHttpClient
 import software.amazon.awssdk.http.apache.ApacheHttpClient
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient
@@ -28,7 +26,6 @@ class App(
     ),
     private val searchTerm: String = System.getenv("SEARCH_TERM")
 ) : RequestHandler<ScheduledEvent, Unit> {
-    private val logger = LoggerFactory.getLogger(this.javaClass)
 
     override fun handleRequest(event: ScheduledEvent, context: Context?) {
         val sinceId = dynamoDbRepository.lastTweet(searchTerm)?.tweetId ?: 0L
@@ -38,7 +35,5 @@ class App(
         if (tweets.isNotEmpty()) {
             dynamoDbRepository.save(tweets)
         }
-
-        logger.info(tweets.toString())
     }
 }
