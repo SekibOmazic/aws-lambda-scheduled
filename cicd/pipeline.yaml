@@ -124,8 +124,8 @@ Resources:
                   - cloudformation:CreateChangeSet
                   - cloudformation:ExecuteChangeSet
                 Resource:
-                  - !Sub "arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${AWS::StackName}"
-                  - !Sub "arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${AWS::StackName}/*"
+                  - !Sub "arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${AWS::StackName}-resources"
+                  - !Sub "arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${AWS::StackName}-resources/*"
 
               # IAM PassRole
               - Effect: Allow
