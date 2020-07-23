@@ -163,6 +163,7 @@ Resources:
                   - cloudformation:DescribeChangeSet
                   - dynamodb:DescribeTable
                   - dynamodb:CreateTable
+                  - dynamodb:DeleteTable
 
   ### the actual build project and pipeline definition - scheduled-event-lambda
   ScheduledLambdaBuildProject:
