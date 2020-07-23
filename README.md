@@ -32,7 +32,7 @@ Create an OAuth Token in your GitHub account and store it in the Parameter Store
 Then from terminal run:
 
 ```
-aws cloudformation create-stack --stack-name scheduled-event-lambda-pipeline \
+aws cloudformation create-stack --stack-name scheduled-event-lambda \
     --template-body file://cicd/pipeline.yaml \
     --parameters ParameterKey=TableName,ParameterValue=<DYNAMODB_TABLE> \
                  ParameterKey=SearchTerm,ParameterValue=<TWITTER_SEARCH_TERM> \

@@ -17,9 +17,9 @@ Parameters:
     Description: OAuth-Token for GitHub-Access
     Type: AWS::SSM::Parameter::Value<String>
     Default: /github/token
-  ServiceName:
-    Type: String
-    Default: !Sub "${AWS::StackName}"
+#  ServiceName:
+#    Type: String
+#    Default: !Sub "${AWS::StackName}"
   TableName:
     Type: String
     Description: (Required) The name of the new DynamoDB table you want to create and write to. Minimum 3 characters
@@ -52,7 +52,7 @@ Resources:
   CodeBuildRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Sub ${ServiceName}-codebuild-role
+      RoleName: !Sub ${AWS::StackName}-codebuild-role
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -66,7 +66,7 @@ Resources:
   CodeBuildRolePolicies:
     Type: AWS::IAM::Policy
     Properties:
-      PolicyName: !Sub ${ServiceName}-codebuild-base-policy
+      PolicyName: !Sub ${AWS::StackName}-codebuild-base-policy
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -83,7 +83,7 @@ Resources:
     Type: AWS::IAM::Role
     Description: Creating service role in IAM for AWS CodePipeline
     Properties:
-      RoleName: !Sub ${ServiceName}-codepipeline-role
+      RoleName: !Sub ${AWS::StackName}-codepipeline-role
       AssumeRolePolicyDocument:
         Statement:
           - Effect: Allow
@@ -94,7 +94,7 @@ Resources:
             Sid: 1
       Path: /
       Policies:
-        - PolicyName: !Sub ${ServiceName}-codepipeline-policy
+        - PolicyName: !Sub ${AWS::StackName}-codepipeline-policy
           PolicyDocument:
             Statement:
               # allow pipeline to use S3 bucket
@@ -112,7 +112,7 @@ Resources:
                   - codebuild:StartBuild
                   - codebuild:BatchGetBuilds
                 Resource:
-                  - !Sub "arn:aws:codebuild:${AWS::Region}:${AWS::AccountId}:project/${ServiceName}"
+                  - !Sub "arn:aws:codebuild:${AWS::Region}:${AWS::AccountId}:project/${AWS::StackName}"
 
               # allow pipeline to run CloudFormation operations
               - Effect: Allow
@@ -124,8 +124,8 @@ Resources:
                   - cloudformation:CreateChangeSet
                   - cloudformation:ExecuteChangeSet
                 Resource:
-                  - !Sub "arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${ServiceName}"
-                  - !Sub "arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${ServiceName}/*"
+                  - !Sub "arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${AWS::StackName}"
+                  - !Sub "arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${AWS::StackName}/*"
 
               # IAM PassRole
               - Effect: Allow
@@ -137,7 +137,7 @@ Resources:
     Type: AWS::IAM::Role
     Description: Creating service role in IAM for AWS CloudFormation
     Properties:
-      RoleName: !Sub ${ServiceName}-cloudformation-role
+      RoleName: !Sub ${AWS::StackName}-cloudformation-role
       AssumeRolePolicyDocument:
         Statement:
           - Effect: Allow
@@ -147,7 +147,7 @@ Resources:
                 - cloudformation.amazonaws.com
       Path: /
       Policies:
-        - PolicyName: !Sub ${ServiceName}-cloudformation-policy
+        - PolicyName: !Sub ${AWS::StackName}-cloudformation-policy
           PolicyDocument:
             Statement:
               - Effect: Allow
@@ -178,7 +178,7 @@ Resources:
         EnvironmentVariables:
           - Name: S3_BUCKET
             Value: !Ref IntegrationS3Bucket
-      Name: !Ref ServiceName
+      Name: !Sub ${AWS::StackName}
       ServiceRole: !GetAtt CodeBuildRole.Arn
       Source:
         Type: CODEPIPELINE
@@ -195,7 +195,7 @@ Resources:
       ArtifactStore:
         Type: S3
         Location: !Ref IntegrationS3Bucket
-      Name: !Sub ${ServiceName}-pipeline # scheduled-event-lambda-pipeline
+      Name: !Sub ${AWS::StackName}-pipeline # scheduled-event-lambda-pipeline
       RoleArn: !GetAtt CodePipelineTrustRole.Arn
       Stages:
         - Name: GithubSource
@@ -244,7 +244,7 @@ Resources:
                 Capabilities: CAPABILITY_NAMED_IAM
                 ChangeSetName: pipeline-changeset
                 RoleArn: !GetAtt CloudFormationTrustRole.Arn
-                StackName: !Sub ${ServiceName}-resources # !Ref ServiceName
+                StackName: !Sub ${AWS::StackName}-resources
                 TemplatePath: BuildArtifact::packaged-stack.yaml
                 ParameterOverrides: !Sub |
                   {
@@ -265,4 +265,4 @@ Resources:
               Configuration:
                 ActionMode: CHANGE_SET_EXECUTE
                 ChangeSetName: pipeline-changeset
-                StackName: !Sub ${ServiceName}-resources # !Ref ServiceName
+                StackName: !Sub ${AWS::StackName}-resources
