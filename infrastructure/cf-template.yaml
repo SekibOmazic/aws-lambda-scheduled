@@ -88,7 +88,6 @@ Resources:
                   - dynamodb:PutItem
                   - dynamodb:Query
                   - dynamodb:UpdateItem
-                  - dynamodb:DescribeTable
                 Resource: !GetAtt DynamoDbTable.Arn
       ManagedPolicyArns:
       - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole

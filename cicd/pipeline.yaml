@@ -161,6 +161,7 @@ Resources:
                   - events:*
                   - cloudformation:CreateChangeSet
                   - cloudformation:DescribeChangeSet
+                  - dynamodb:DescribeTable
 
   ### the actual build project and pipeline definition - scheduled-event-lambda
   ScheduledLambdaBuildProject:
