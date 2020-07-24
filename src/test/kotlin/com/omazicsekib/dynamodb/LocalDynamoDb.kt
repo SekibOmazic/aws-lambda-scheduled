@@ -4,6 +4,7 @@ import com.amazonaws.services.dynamodbv2.local.main.ServerRunner
 import com.amazonaws.services.dynamodbv2.local.server.DynamoDBProxyServer
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
+import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient
 import software.amazon.awssdk.services.dynamodb.model.*
@@ -25,6 +26,7 @@ class LocalDynamoDb {
 
         dynamoDbClient = DynamoDbClient.builder()
                 .region(Region.EU_CENTRAL_1)
+                .httpClientBuilder(UrlConnectionHttpClient.builder())
                 .endpointOverride(URI.create("http://localhost:${port}"))
                 .credentialsProvider(StaticCredentialsProvider.create(
                         AwsBasicCredentials.create("fakeAccessKey","fakeSecretKey"))

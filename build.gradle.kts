@@ -64,9 +64,10 @@ dependencies {
     implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 
-    implementation(platform("software.amazon.awssdk:bom:2.13.55"))
+    implementation(platform("software.amazon.awssdk:bom:2.13.59"))
     implementation("software.amazon.awssdk:dynamodb")
-    implementation("software.amazon.awssdk:apache-client")
+    implementation("software.amazon.awssdk:url-connection-client")
+    // implementation("software.amazon.awssdk:apache-client")
     implementation("com.amazonaws:aws-lambda-java-core:1.2.1")
     implementation("com.amazonaws:aws-lambda-java-events:2.2.9")
 
